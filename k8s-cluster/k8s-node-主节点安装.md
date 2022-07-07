@@ -1,22 +1,33 @@
-## k8s节点
+# k8s 主节点安装
+[参考文档](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/)
+
+## 安装kubeadm
 
 #### 设置主机名
 ```shell script
-hostnamectl set-hostname ubuntu-node-001
+hostnamectl set-hostname ubuntu-k8s-master
 
 vim /etc/hosts
-127.0.0.1     ubuntu-node-001
+127.0.0.1 ubuntu-k8s-master
 
 reboot
 ```
 
 #### 安转kubeadm
 ```shell script
-apt-get install -y apt-transport-https ca-certificates curl
-curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
-echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 apt-get update
-apt-get install -y docker.io kubeadm
+
+apt-get install -y apt-transport-https ca-certificates curl
+
+curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+apt-get update
+
+apt-get install -y docker.io  kubelet kubeadm kubectl
+
+apt-mark hold kubelet kubeadm kubectl
 ```
 
 #### 修改docker cgroup driver
@@ -30,20 +41,24 @@ EOF
 systemctl restart docker
 ```
 
-#### 安转k8s
+## 创建集群
+
+#### 初始化
 ```shell script
 kubeadm init --config kubeadm-init.yaml
 ```
 
 #### 记录kubeadm join
 ```shell script
-kubeadm join 192.168.220.134:6443 --token 0jlyqu.1atumyr6pomfhrav \
-        --discovery-token-ca-cert-hash sha256:0fdf5f755f2d1871eeed832024cf7ee8ed0364c637aae0459d9901205f205872 
+kubeadm join 192.168.213.134:6443 --token 4y5dz8.5j5okqdj8gapgi5u \
+        --discovery-token-ca-cert-hash sha256:ff028d285a64cbec5f558572673f20f88a079bc00caf79a1a4f464dad2df02ae  
 ```
 
-#### 配置文件
+#### 设置配置文件
 ```shell script
-cp /etc/kubernetes/admin.conf .kube/config
+mkdir -p $HOME/.kube
+cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 
 #### 安装网络插件

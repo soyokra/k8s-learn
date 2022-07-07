@@ -1,6 +1,6 @@
-## k8s基础虚拟机配置
+## k8s-node-基础配置
 
-#### 安装必要的软件
+#### 安装基础软件
 ```shell script
 apt install -y ebtables ethtool vim
 ```
